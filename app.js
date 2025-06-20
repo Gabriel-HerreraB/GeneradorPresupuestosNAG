@@ -6,6 +6,20 @@ const vencimiento = new Date();
 vencimiento.setDate(vencimiento.getDate() + 10);
 document.getElementById('fechaVencimiento').value = vencimiento.toISOString().split('T')[0];
 
+function addItemManoObra() {
+    const container = document.getElementById('itemsManoObraContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'item-row';
+    newItem.innerHTML = `
+        <input type="text" placeholder="Descripción de la mano de obra" class="item-desc-mano">
+        <input type="number" placeholder="Precio" class="item-price-mano" oninput="calculateTotals()">
+        <input type="number" placeholder="Cant." class="item-qty-mano" value="1" oninput="calculateTotals()">
+        <input type="number" placeholder="Total" class="item-total-mano" readonly>
+        <button class="remove-btn" onclick="removeItem(this)">×</button>
+    `;
+    container.appendChild(newItem);
+}
+
 function addItem() {
     const container = document.getElementById('itemsContainer');
     const newItem = document.createElement('div');
@@ -30,23 +44,34 @@ function removeItem(button) {
 function calculateTotals() {
     const items = document.querySelectorAll('.item-row');
     let totalRepuestos = 0;
+    let totalManoObraItems = 0;
 
-    items.forEach(item => {
+    // Suma de repuestos
+    document.querySelectorAll('#itemsContainer .item-row').forEach(item => {
         const price = parseFloat(item.querySelector('.item-price').value) || 0;
         const qty = parseFloat(item.querySelector('.item-qty').value) || 1;
         const total = price * qty;
-        
         item.querySelector('.item-total').value = total;
         totalRepuestos += total;
     });
 
-    const manoDeObra = parseFloat(document.getElementById('manoDeObra').value) || 0;
-    const totalFinal = totalRepuestos + manoDeObra;
+    // Suma de mano de obra
+    document.querySelectorAll('#itemsManoObraContainer .item-row').forEach(item => {
+        const price = parseFloat(item.querySelector('.item-price-mano').value) || 0;
+        const qty = parseFloat(item.querySelector('.item-qty-mano').value) || 1;
+        const total = price * qty;
+        item.querySelector('.item-total-mano').value = total;
+        totalManoObraItems += total;
+    });
+
+    const totalManoObra = totalManoObraItems;
+    const totalFinal = totalRepuestos + totalManoObra;
 
     document.getElementById('totalRepuestos').textContent = `$${totalRepuestos.toLocaleString()}`;
-    document.getElementById('totalManoObra').textContent = `$${manoDeObra.toLocaleString()}`;
+    document.getElementById('totalManoObra').textContent = `$${totalManoObra.toLocaleString()}`;
     document.getElementById('totalFinal').textContent = `$${totalFinal.toLocaleString()}`;
 }
+
 
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -145,9 +170,52 @@ function generatePDF() {
     doc.setFont('helvetica', 'normal');
 
     // Items con colores alternados
-    const items = document.querySelectorAll('.item-row');
+    const items = document.querySelectorAll('#itemsContainer .item-row');
     let itemNumber = 1;
     let isAlternate = false;
+
+    const itemsManoObra = document.querySelectorAll('#itemsManoObraContainer .item-row');
+    itemsManoObra.forEach(item => {
+        const desc = item.querySelector('.item-desc-mano').value || '';
+        const price = parseFloat(item.querySelector('.item-price-mano').value) || 0;
+        const qty = parseFloat(item.querySelector('.item-qty-mano').value) || 1;
+        const total = price * qty;
+
+        if (desc || price > 0) {
+            if (isAlternate) {
+                doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+                doc.rect(20, yPosition, 170, 8, 'F');
+            }
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, yPosition, 190, yPosition);
+            doc.line(20, yPosition + 8, 190, yPosition + 8);
+            doc.line(20, yPosition, 20, yPosition + 8);
+            doc.line(32, yPosition, 32, yPosition + 8);
+            doc.line(118, yPosition, 118, yPosition + 8);
+            doc.line(138, yPosition, 138, yPosition + 8);
+            doc.line(160, yPosition, 160, yPosition + 8);
+            doc.line(190, yPosition, 190, yPosition + 8);
+
+            doc.setFontSize(8);
+            doc.text(itemNumber.toString(), 22, yPosition + 5);
+            doc.text(desc.substring(0, 50), 35, yPosition + 5);
+            doc.text(`$${price.toLocaleString()}`, 120, yPosition + 5);
+            doc.text(qty.toString(), 145, yPosition + 5);
+            doc.text(`$${total.toLocaleString()}`, 165, yPosition + 5);
+
+            yPosition += 8;
+            itemNumber++;
+            isAlternate = !isAlternate;
+        }
+    });
+
+    doc.setDrawColor(0, 0, 0); // negro
+    doc.setLineWidth(1);
+    doc.line(20, yPosition, 190, yPosition);
+    //yPosition += 2;
+    doc.setLineWidth(0.5);//Resetear el grosor de línea
+
 
     items.forEach(item => {
         const desc = item.querySelector('.item-desc').value || '';

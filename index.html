@@ -50,6 +50,22 @@
 
             <div class="items-section">
                 <div class="items-header">
+                    <h3>Items de Mano de Obra</h3>
+                    <button class="add-item-btn" onclick="addItemManoObra()">+ Agregar Mano de Obra</button>
+                </div>
+                <div id="itemsManoObraContainer">
+                    <div class="item-row">
+                    <input type="text" placeholder="Descripción de la mano de obra" class="item-desc-mano">
+                    <input type="number" placeholder="Precio" class="item-price-mano" oninput="calculateTotals()">
+                    <input type="number" placeholder="Cant." class="item-qty-mano" value="1" oninput="calculateTotals()">
+                    <input type="number" placeholder="Total" class="item-total-mano" readonly>
+                    <button class="remove-btn" onclick="removeItem(this)">×</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="items-section">
+                <div class="items-header">
                     <h3>Items del Presupuesto</h3>
                     <button class="add-item-btn" onclick="addItem()">+ Agregar Item</button>
                 </div>
@@ -62,11 +78,6 @@
                         <button class="remove-btn" onclick="removeItem(this)">×</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="manoDeObra">Costo Mano de Obra</label>
-                <input type="number" id="manoDeObra" placeholder="0" oninput="calculateTotals()">
             </div>
 
             <div class="totals-section">
