@@ -168,9 +168,9 @@ function generatePDF() {
     const darkGray = [20, 20, 20];
     
     // Configuración de páginas
-    const pageHeight = 297; // A4 height in mm
+    const pageHeight = 297; //297 -> A4 height en mm
     const footerHeight = 40;
-    const maxYPosition = pageHeight - footerHeight;
+    const maxYPosition = pageHeight - footerHeight + 25; 
     let currentPage = 1;
     let yPosition = 90;
 
