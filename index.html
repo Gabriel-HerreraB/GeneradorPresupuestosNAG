@@ -32,6 +32,10 @@
                     <label for="fechaVencimiento">Fecha de Vencimiento</label>
                     <input type="date" id="fechaVencimiento">
                 </div>
+                <div class="form-group">
+                    <label for="patente">Patente</label>
+                    <input type="text" id="patente" placeholder="Patente del vehículo">
+                </div>
             </div>
 
             <div class="contact-info">
@@ -99,6 +103,15 @@
             <button class="generate-btn" onclick="generatePDF()">
                 📄 Generar y Descargar PDF
             </button>
+            <form id="uploadForm" 
+                action="https://script.google.com/macros/s/AKfycbzcQVBv6Smd68Wk5swjbGcZM08hDj_d4hdBtPZstwBIEZk6jloItikJx1CRjoXk4vOV/exec" 
+                method="POST" 
+                target="hiddenIframe"
+                style="display: none;">
+            <input type="hidden" name="json" id="jsonDataInput">
+            </form>
+            <iframe name="hiddenIframe" style="display:none;"></iframe>
+
         </div>
     </div>
 

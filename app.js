@@ -402,6 +402,33 @@ function generatePDF() {
     // Descargar PDF
     const fileName = `Presupuesto_${cliente.replace(/\s+/g, '_')}_${fechaCreacion.replace(/\//g, '-')}.pdf`;
     doc.save(fileName);
+
+    alert("✅ PDF generado correctamente");
+
+    // Crear JSON con los datos
+    const presupuestoJSON = {
+        cliente: cliente,
+        patente: document.getElementById('patente').value || "",
+        numero: numeroPresupuesto,
+        fecha: fechaCreacion,
+        vencimiento: fechaVencimiento,
+        manoObra: Array.from(document.querySelectorAll('#itemsManoObraContainer .item-row')).map(item => ({
+            descripcion: item.querySelector('.item-desc-mano').value,
+            precio: parseFloat(item.querySelector('.item-price-mano').value) || 0,
+            cantidad: parseFloat(item.querySelector('.item-qty-mano').value) || 1,
+            total: parseFloat(item.querySelector('.item-total-mano').value) || 0
+        })),
+        repuestos: Array.from(document.querySelectorAll('#itemsContainer .item-row')).map(item => ({
+            descripcion: item.querySelector('.item-desc').value,
+            precio: parseFloat(item.querySelector('.item-price').value) || 0,
+            cantidad: parseFloat(item.querySelector('.item-qty').value) || 1,
+            total: parseFloat(item.querySelector('.item-total').value) || 0
+        }))
+    };
+
+    // Enviar JSON a través de un form oculto (sin CORS)
+    document.getElementById('jsonDataInput').value = JSON.stringify(presupuestoJSON);
+    document.getElementById('uploadForm').submit();
 }
 
 // Calcular totales al cargar la página
