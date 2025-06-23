@@ -1,0 +1,69 @@
+<div class="buscador-container">
+    <div class="buscador-header">
+        <h1>Buscador de Presupuestos</h1>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="filtros-section">
+        <h3>Filtros de Búsqueda</h3>
+        <div class="filtros-grid">
+            <div class="filtro-group">
+                <label for="filtroCliente">Cliente</label>
+                <input type="text" id="filtroCliente" placeholder="Buscar por cliente">
+            </div>
+            <div class="filtro-group">
+                <label for="filtroPatente">Patente</label>
+                <input type="text" id="filtroPatente" placeholder="Buscar por patente">
+            </div>
+            <div class="filtro-group">
+                <label for="filtroFechaDesde">Fecha Desde</label>
+                <input type="date" id="filtroFechaDesde">
+            </div>
+            <div class="filtro-group">
+                <label for="filtroFechaHasta">Fecha Hasta</label>
+                <input type="date" id="filtroFechaHasta">
+            </div>
+        </div>
+        <div class="filtros-actions">
+            <button id="btnBuscar" class="btn-primary">
+                Buscar
+            </button>
+            <button id="btnLimpiarFiltros" class="btn-secondary">
+                Limpiar Filtros
+            </button>
+        </div>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Cargando presupuestos...</p>
+    </div>
+
+    <!-- Contador de resultados -->
+    <div class="resultados-info">
+        <span id="contadorResultados">0 de 0 presupuestos</span>
+    </div>
+
+    <!-- Resultados de la búsqueda -->
+    <div id="resultadosBusqueda" class="resultados-section">
+        <div class="tabla-container">
+            <table class="tabla-presupuestos">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Patente</th>
+                        <th>Fecha</th>
+                        <th>Vencimiento</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaPresupuestos">
+                    <!-- Los resultados se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
