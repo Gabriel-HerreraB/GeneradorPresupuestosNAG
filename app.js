@@ -139,6 +139,12 @@ function addPageHeader(doc, pageNumber) {
         doc.text('TOTAL', 165, yPosition + 5);
         
         doc.setTextColor(0, 0, 0);
+
+        //Volvemos al estilo normal
+        doc.setFont('helvetica', 'normal'); 
+        doc.setFontSize(8); 
+        doc.setTextColor(0, 0, 0); 
+
         return yPosition + 8;
     }
     return 0;
@@ -237,93 +243,125 @@ function generatePDF() {
     doc.text('TOTAL', 165, yPosition + 5);
     yPosition += 8;
     
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
+doc.setTextColor(0, 0, 0);
+doc.setFont('helvetica', 'normal');
 
-    // Procesar todos los items
-    const itemsManoObra = document.querySelectorAll('#itemsManoObraContainer .item-row');
-    const items = document.querySelectorAll('#itemsContainer .item-row');
-    const allItems = [...itemsManoObra, ...items];
-    
-    let itemNumber = 1;
-    let isAlternate = false;
-    
-    // Función para verificar si necesitamos nueva página
-    function checkNewPage(requiredHeight = 16) { // altura estimada para un item con texto múltiple
-        if (yPosition + requiredHeight > maxYPosition) {
-            // Agregar footer a la página actual
-            addPageFooter(doc, currentPage, telefono);
-            
-            // Nueva página
-            doc.addPage();
-            currentPage++;
-            yPosition = addPageHeader(doc, currentPage);
-            isAlternate = false; // Reiniciar alternancia en nueva página
-        }
+// Obtener los ítems
+const itemsManoObra = document.querySelectorAll('#itemsManoObraContainer .item-row');
+const items = document.querySelectorAll('#itemsContainer .item-row');
+
+let itemNumber = 1;
+let isAlternate = false;
+
+// Verificar si necesitamos nueva página
+function checkNewPage(requiredHeight = 16) {
+    if (yPosition + requiredHeight > maxYPosition) {
+        addPageFooter(doc, currentPage, telefono);
+        doc.addPage();
+        currentPage++;
+        yPosition = 20; // No dibujamos header todavía
+        isAlternate = false;
     }
+}
 
-    // Procesar items
-    allItems.forEach((item, index) => {
-        const isFromManoObra = index < itemsManoObra.length;
-        const desc = isFromManoObra ? 
-            item.querySelector('.item-desc-mano').value || '' :
-            item.querySelector('.item-desc').value || '';
-        const price = isFromManoObra ?
-            parseFloat(item.querySelector('.item-price-mano').value) || 0 :
-            parseFloat(item.querySelector('.item-price').value) || 0;
-        const qty = isFromManoObra ?
-            parseFloat(item.querySelector('.item-qty-mano').value) || 1 :
-            parseFloat(item.querySelector('.item-qty').value) || 1;
-        const total = price * qty;
+// Función para agregar encabezado si es necesario
+function ensureTableHeader() {
+    if (yPosition === 20) {
+        yPosition = addPageHeader(doc, currentPage);
+    }
+}
 
-        if (desc || price > 0) {
-            // Dividir descripción larga en múltiples líneas
-            const descLines = splitText(doc, desc, 80, 8);
-            const itemHeight = Math.max(8, descLines.length * 4 + 4);
-            
-            // Verificar si necesitamos nueva página
-            checkNewPage(itemHeight);
+// === Procesar items de MANO DE OBRA ===
+itemsManoObra.forEach((item) => {
+    const desc = item.querySelector('.item-desc-mano').value || '';
+    const price = parseFloat(item.querySelector('.item-price-mano').value) || 0;
+    const qty = parseFloat(item.querySelector('.item-qty-mano').value) || 1;
+    const total = price * qty;
 
-            // Fondo alternado
-            if (isAlternate) {
-                doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
-                doc.rect(20, yPosition, 170, itemHeight, 'F');
-            }
+    if (desc || price > 0) {
+        const descLines = splitText(doc, desc, 80, 8);
+        const itemHeight = Math.max(8, descLines.length * 4 + 4);
 
-            // Líneas de la tabla
-            doc.setDrawColor(200, 200, 200);
-            doc.line(20, yPosition, 190, yPosition);
-            doc.line(20, yPosition + itemHeight, 190, yPosition + itemHeight);
-            doc.line(20, yPosition, 20, yPosition + itemHeight);
-            doc.line(32, yPosition, 32, yPosition + itemHeight);
-            doc.line(118, yPosition, 118, yPosition + itemHeight);
-            doc.line(138, yPosition, 138, yPosition + itemHeight);
-            doc.line(160, yPosition, 160, yPosition + itemHeight);
-            doc.line(190, yPosition, 190, yPosition + itemHeight);
+        checkNewPage(itemHeight);
+        ensureTableHeader();
 
-            doc.setFontSize(8);
-            doc.text(itemNumber.toString(), 22, yPosition + 5);
-            
-            // Descripción con múltiples líneas
-            descLines.forEach((line, lineIndex) => {
-                doc.text(line, 35, yPosition + 5 + (lineIndex * 4));
-            });
-            
-            doc.text(`$${price.toLocaleString()}`, 120, yPosition + 5);
-            doc.text(qty.toString(), 145, yPosition + 5);
-            doc.text(`$${total.toLocaleString()}`, 165, yPosition + 5);
-
-            yPosition += itemHeight;
-            itemNumber++;
-            isAlternate = !isAlternate;
+        if (isAlternate) {
+            doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+            doc.rect(20, yPosition, 170, itemHeight, 'F');
         }
-    });
 
-    // Línea final de la tabla
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(1);
-    doc.line(20, yPosition, 190, yPosition);
-    doc.setLineWidth(0.5);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, yPosition, 190, yPosition);
+        doc.line(20, yPosition + itemHeight, 190, yPosition + itemHeight);
+        doc.line(20, yPosition, 20, yPosition + itemHeight);
+        doc.line(32, yPosition, 32, yPosition + itemHeight);
+        doc.line(118, yPosition, 118, yPosition + itemHeight);
+        doc.line(138, yPosition, 138, yPosition + itemHeight);
+        doc.line(160, yPosition, 160, yPosition + itemHeight);
+        doc.line(190, yPosition, 190, yPosition + itemHeight);
+
+        doc.setFontSize(8);
+        doc.text(itemNumber.toString(), 22, yPosition + 5);
+        descLines.forEach((line, i) => doc.text(line, 35, yPosition + 5 + (i * 4)));
+        doc.text(`$${price.toLocaleString()}`, 120, yPosition + 5);
+        doc.text(qty.toString(), 145, yPosition + 5);
+        doc.text(`$${total.toLocaleString()}`, 165, yPosition + 5);
+
+        yPosition += itemHeight;
+        itemNumber++;
+        isAlternate = !isAlternate;
+    }
+});
+
+// === Línea divisoria entre secciones ===
+checkNewPage(4);
+doc.setDrawColor(0, 0, 0); // negro
+doc.setLineWidth(0.5);
+doc.line(20, yPosition, 190, yPosition);
+yPosition += 0.5;
+doc.setLineWidth(0.5);
+
+// === Procesar items de REPUESTOS ===
+items.forEach((item) => {
+    const desc = item.querySelector('.item-desc').value || '';
+    const price = parseFloat(item.querySelector('.item-price').value) || 0;
+    const qty = parseFloat(item.querySelector('.item-qty').value) || 1;
+    const total = price * qty;
+
+    if (desc || price > 0) {
+        const descLines = splitText(doc, desc, 80, 8);
+        const itemHeight = Math.max(8, descLines.length * 4 + 4);
+
+        checkNewPage(itemHeight);
+        ensureTableHeader();
+
+        if (isAlternate) {
+            doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+            doc.rect(20, yPosition, 170, itemHeight, 'F');
+        }
+
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, yPosition, 190, yPosition);
+        doc.line(20, yPosition + itemHeight, 190, yPosition + itemHeight);
+        doc.line(20, yPosition, 20, yPosition + itemHeight);
+        doc.line(32, yPosition, 32, yPosition + itemHeight);
+        doc.line(118, yPosition, 118, yPosition + itemHeight);
+        doc.line(138, yPosition, 138, yPosition + itemHeight);
+        doc.line(160, yPosition, 160, yPosition + itemHeight);
+        doc.line(190, yPosition, 190, yPosition + itemHeight);
+
+        doc.setFontSize(8);
+        doc.text(itemNumber.toString(), 22, yPosition + 5);
+        descLines.forEach((line, i) => doc.text(line, 35, yPosition + 5 + (i * 4)));
+        doc.text(`$${price.toLocaleString()}`, 120, yPosition + 5);
+        doc.text(qty.toString(), 145, yPosition + 5);
+        doc.text(`$${total.toLocaleString()}`, 165, yPosition + 5);
+
+        yPosition += itemHeight;
+        itemNumber++;
+        isAlternate = !isAlternate;
+    }
+});
 
     // Verificar espacio para totales y aclaraciones (necesitamos ~60mm)
     checkNewPage(60);
@@ -341,7 +379,7 @@ function generatePDF() {
     doc.setFontSize(10);
     
     const aclaracionText = [
-        'El precio de los neumáticos es un aproximado ya que',
+        'El precio de los repuestos es un aproximado ya que',
         'para comprar el repuesto hace falta llevar la muestra,',
         'por lo cual puede existir variación en el precio de los',
         'mismos.'
