@@ -26,44 +26,44 @@ function initializeBuscador() {
 
 // Función para cargar presupuestos desde Google Drive
 async function cargarPresupuestos() {
-  const cliente = document.getElementById('filtroCliente').value.trim();
-  const patente = document.getElementById('filtroPatente').value.trim();
-  const fechaDesde = document.getElementById('filtroFechaDesde').value;
-  const fechaHasta = document.getElementById('filtroFechaHasta').value;
+    const cliente = document.getElementById('filtroCliente').value.trim();
+    const patente = document.getElementById('filtroPatente').value.trim();
+    const fechaDesde = document.getElementById('filtroFechaDesde').value;
+    const fechaHasta = document.getElementById('filtroFechaHasta').value;
 
-  const loadingDiv = document.getElementById('loadingIndicator');
-  loadingDiv.style.display = 'block';
+    const loadingDiv = document.getElementById('loadingIndicator');
+    loadingDiv.style.display = 'block';
 
-  const queryParams = new URLSearchParams({
+    const queryParams = new URLSearchParams({
     action: 'buscar',
     cliente,
     patente,
     fechaDesde,
     fechaHasta
-  });
+    });
 
-  try {
+    try {
     const response = await fetch(SCRIPT_URL_SEARCH + '?' + queryParams.toString(), {
-      method: 'GET',
-      mode: 'cors'
+        method: 'GET',
+        mode: 'cors'
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const data = await response.json();
     if (data.success) {
-      presupuestos = data.presupuestos || [];
-      presupuestosFiltrados = [...presupuestos];
-      mostrarResultados();
-      actualizarContador();
+        presupuestos = data.presupuestos || [];
+        presupuestosFiltrados = [...presupuestos];
+        mostrarResultados();
+        actualizarContador();
     } else {
-      throw new Error(data.error || 'Error al buscar');
+        throw new Error(data.error || 'Error al buscar');
     }
-  } catch (error) {
+    } catch (error) {
     mostrarError('Error al buscar presupuestos: ' + error.message);
-  } finally {
+    } finally {
     loadingDiv.style.display = 'none';
-  }
+    }
 }
 
 
@@ -287,36 +287,37 @@ async function eliminarPresupuesto(id) {
     if (!confirm('¿Estás seguro de que deseas eliminar este presupuesto? Esta acción no se puede deshacer.')) {
         return;
     }
-    
+
     try {
         const loadingDiv = document.getElementById('loadingIndicator');
         loadingDiv.style.display = 'block';
-        
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'eliminar');
+        formData.append('id', id);
+
         const response = await fetch(SCRIPT_URL_SEARCH, {
             method: 'POST',
             mode: 'cors',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
-                action: 'eliminar',
-                id: id
-            })
+            body: formData.toString()
         });
-        
+
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Presupuesto eliminado correctamente');
-            cargarPresupuestos(); // Recargar la lista
+            cargarPresupuestos();
         } else {
             throw new Error(data.error || 'Error desconocido al eliminar');
         }
-        
+
     } catch (error) {
         console.error('Error al eliminar presupuesto:', error);
         alert('Error al eliminar el presupuesto: ' + error.message);
