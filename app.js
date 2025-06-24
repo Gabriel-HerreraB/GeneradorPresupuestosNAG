@@ -9,6 +9,11 @@ const pages = {
         html: 'buscador/buscador.html',
         css: 'buscador/buscador.css',
         js: 'buscador/buscador.js'
+    },
+    comparador: {
+        html: 'comparador/comparador.html',
+        css: 'comparador/comparador.css',
+        js: 'comparador/comparador.js'
     }
 };
 
