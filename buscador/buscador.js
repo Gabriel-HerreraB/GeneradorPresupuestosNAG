@@ -163,11 +163,15 @@ function calcularTotal(presupuesto) {
     let total = 0;
     
     if (presupuesto.manoObra && Array.isArray(presupuesto.manoObra)) {
-        total += presupuesto.manoObra.reduce((sum, item) => sum + (item.total || 0), 0);
+        total += presupuesto.manoObra.reduce(
+                    (sum, item) => sum + (item.precio * item.cantidad), 0
+                );
     }
     
     if (presupuesto.repuestos && Array.isArray(presupuesto.repuestos)) {
-        total += presupuesto.repuestos.reduce((sum, item) => sum + (item.total || 0), 0);
+        total += presupuesto.repuestos.reduce(
+                    (sum, item) => sum + (item.precio * item.cantidad), 0
+                );
     }
     
     return total;
@@ -376,8 +380,8 @@ function generatePDFContent(doc, presupuesto) {
     doc.text('PERSONA DE CONTACTO', 20, 70);
     doc.setTextColor(0, 0, 0);
     
-    const telefono = presupuesto.telefono || 'Teléfono del Cliente';
-    const email = presupuesto.email || 'Email del Cliente';
+    const telefono = presupuesto.telefono || '(351) 817-6692';
+    const email = presupuesto.email || 'agosgulli9@gmail.com';
     doc.setFont('helvetica', 'bold');
     doc.text(`Teléfono: ${telefono}`, 20, 75);
     doc.text(`Email: ${email}`, 20, 80);
@@ -595,11 +599,11 @@ async function abrirGeneradorModal(presupuesto) {
     // Rellenar campos base
     document.getElementById('cliente').value = presupuesto.cliente || '';
     document.getElementById('numeroPresupuesto').value = presupuesto.numero || '';
-    document.getElementById('fechaCreacion').value = presupuesto.fecha || '';
-    document.getElementById('fechaVencimiento').value = presupuesto.vencimiento || '';
+    document.getElementById('fechaCreacion').value = formatearFechaParaInput(presupuesto.fecha);
+    document.getElementById('fechaVencimiento').value = formatearFechaParaInput(presupuesto.vencimiento);
     document.getElementById('patente').value = presupuesto.patente || '';
-    document.getElementById('telefono').value = presupuesto.telefono || '';
-    document.getElementById('email').value = presupuesto.email || '';
+    document.getElementById('telefono').value = presupuesto.contactoNumero || '';
+    document.getElementById('email').value = presupuesto.contactoEmail || '';
 
     // Limpiar items previos
     document.getElementById('itemsManoObraContainer').innerHTML = '';
@@ -651,15 +655,28 @@ function cerrarGeneradorModal() {
 async function generatePDF() {
     try {
     const presupuesto = recolectarDatosDelFormulario();
-    const idExistente = presupuesto.id;
+    const idExistente = idPresupuestoActual;
 
     // Eliminar archivo anterior si estamos editando
     if (idExistente) {
-        await fetch(SCRIPT_URL_SEARCH, {
+       /*  await fetch(SCRIPT_URL_SEARCH, {
         method: 'POST',
         mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'eliminar', id: idExistente })
+        }); */
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'eliminar');
+        formData.append('id', idExistente);
+
+        await fetch(SCRIPT_URL_SEARCH, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
         });
     }
 
@@ -670,15 +687,12 @@ async function generatePDF() {
 
     const pdfBlob = doc.output('blob');
 
-    // Armar FormData para enviar al backend
-    const formData = new FormData();
-    formData.append('json', new Blob([JSON.stringify(presupuesto)], { type: 'application/json' }));
-
-
-    // Enviar al backend (Apps Script)
     const response = await fetch(SCRIPT_URL_SEARCH, {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `action=guardar&json=${encodeURIComponent(JSON.stringify(presupuesto))}`
     });
 
     if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
@@ -692,7 +706,6 @@ async function generatePDF() {
     alert('Hubo un error: ' + error.message);
     }
 }
-
 
 function recolectarDatosDelFormulario() {
     const presupuesto = {
@@ -730,4 +743,9 @@ function recolectarDatosDelFormulario() {
 
     return presupuesto;
 }
-
+function formatearFechaParaInput(fechaStr) {
+    if (!fechaStr) return '';
+    
+    const [dia, mes, anio] = fechaStr.split('/');
+    return `${anio}-${mes}-${dia}`;
+}

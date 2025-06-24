@@ -461,7 +461,9 @@ items.forEach((item) => {
             precio: parseFloat(item.querySelector('.item-price').value) || 0,
             cantidad: parseFloat(item.querySelector('.item-qty').value) || 1,
             total: parseFloat(item.querySelector('.item-total').value) || 0
-        }))
+        })),
+        telefono: document.getElementById('telefono').value || '',
+        email: document.getElementById('email').value || '',
     };
 
     // Enviar JSON a través de un form oculto (sin CORS)
