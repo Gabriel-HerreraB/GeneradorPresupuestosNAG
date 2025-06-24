@@ -3,118 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Presupuestos - Neumáticos AG</title>
+    <title>Neumáticos AG - Sistema de Presupuestos</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <nav class="navbar">
+        <div class="nav-brand" style="align-items: center;">
             <h1>NEUMÁTICOS AG</h1>
-            <p>Generador de Presupuestos</p>
         </div>
-
-        <div class="form-section">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="cliente">Cliente</label>
-                    <input type="text" id="cliente" placeholder="Nombre del cliente">
-                </div>
-                <div class="form-group">
-                    <label for="numeroPresupuesto">Número de Presupuesto</label>
-                    <input type="text" id="numeroPresupuesto" placeholder="N° 001-000123">
-                </div>
-                <div class="form-group">
-                    <label for="fechaCreacion">Fecha de Creación</label>
-                    <input type="date" id="fechaCreacion">
-                </div>
-                <div class="form-group">
-                    <label for="fechaVencimiento">Fecha de Vencimiento</label>
-                    <input type="date" id="fechaVencimiento">
-                </div>
-                <div class="form-group">
-                    <label for="patente">Patente</label>
-                    <input type="text" id="patente" placeholder="Patente del vehículo">
-                </div>
-            </div>
-
-            <div class="contact-info">
-                <h4>Datos de Contacto (Editables)</h4>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" value="(351) 817-6692">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" value="agosgulli9@gmail.com">
-                    </div>
-                </div>
-            </div>
-
-            <div class="items-section">
-                <div class="items-header">
-                    <h3>Items de Mano de Obra</h3>
-                    <button class="add-item-btn" onclick="addItemManoObra()">+ Agregar Mano de Obra</button>
-                </div>
-                <div id="itemsManoObraContainer">
-                    <div class="item-row">
-                    <input type="text" placeholder="Descripción de la mano de obra" class="item-desc-mano">
-                    <input type="number" placeholder="Precio" class="item-price-mano" oninput="calculateTotals()">
-                    <input type="number" placeholder="Cant." class="item-qty-mano" value="1" oninput="calculateTotals()">
-                    <input type="number" placeholder="Total" class="item-total-mano" readonly>
-                    <button class="remove-btn" onclick="removeItem(this)">×</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="items-section">
-                <div class="items-header">
-                    <h3>Items del Presupuesto</h3>
-                    <button class="add-item-btn" onclick="addItem()">+ Agregar Item</button>
-                </div>
-                <div id="itemsContainer">
-                    <div class="item-row">
-                        <input type="text" placeholder="Descripción del servicio" class="item-desc">
-                        <input type="number" placeholder="Precio" class="item-price" oninput="calculateTotals()">
-                        <input type="number" placeholder="Cant." class="item-qty" value="1" oninput="calculateTotals()">
-                        <input type="number" placeholder="Total" class="item-total" readonly>
-                        <button class="remove-btn" onclick="removeItem(this)">×</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="totals-section">
-                <div class="totals-grid">
-                    <div class="total-item">
-                        <span>Repuestos total aprox.</span>
-                        <span id="totalRepuestos">$0</span>
-                    </div>
-                    <div class="total-item">
-                        <span>Mano de obra total</span>
-                        <span id="totalManoObra">$0</span>
-                    </div>
-                </div>
-                <div class="total-final">
-                    <div>TOTAL: <span id="totalFinal">$0</span></div>
-                </div>
-            </div>
-
-            <button class="generate-btn" onclick="generatePDF()">
-                📄 Generar y Descargar PDF
+        <div class="nav-menu">
+            <button class="nav-btn active" data-page="generador">
+                📝 Generador
             </button>
-            <form id="uploadForm" 
-                action="https://script.google.com/macros/s/AKfycbzcQVBv6Smd68Wk5swjbGcZM08hDj_d4hdBtPZstwBIEZk6jloItikJx1CRjoXk4vOV/exec" 
-                method="POST" 
-                target="hiddenIframe"
-                style="display: none;">
-            <input type="hidden" name="json" id="jsonDataInput">
-            </form>
-            <iframe name="hiddenIframe" style="display:none;"></iframe>
-
+            <button class="nav-btn" data-page="buscador">
+                🔍 Buscador
+            </button>
         </div>
-    </div>
+    </nav>
+
+    <main class="main-content">
+        <div id="content-container">
+            <!-- El contenido se cargará aquí dinámicamente -->
+        </div>
+    </main>
 
     <script src="app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </body>
 </html>
