@@ -232,35 +232,32 @@ async function verPresupuesto(id) {
 
 async function descargarPresupuesto(id) {
     try {
+        const presupuesto = presupuestos.find(p => p.id === id);
+        if (!presupuesto) {
+            alert('Presupuesto no encontrado');
+            return;
+        }
+
         const loadingDiv = document.getElementById('loadingIndicator');
         loadingDiv.style.display = 'block';
-        
-        const response = await fetch(SCRIPT_URL_SEARCH + `?action=descargar&id=${id}`, {
-            method: 'GET',
-            mode: 'cors'
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `presupuesto_${id}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Generar el contenido del PDF
+        generatePDFContent(doc, presupuesto);
+
+        // Descargar el PDF directamente
+        doc.save(`Presupuesto_${presupuesto.cliente.replace(/\s+/g, '_')}_${presupuesto.fecha.replace(/\//g, '-')}.pdf`);
         
     } catch (error) {
         console.error('Error al descargar presupuesto:', error);
-        alert('Error al descargar el presupuesto: ' + error.message);
+        alert('Error al generar el PDF: ' + error.message);
     } finally {
         document.getElementById('loadingIndicator').style.display = 'none';
     }
 }
+
 
 function editarPresupuesto(id) {
     try {
