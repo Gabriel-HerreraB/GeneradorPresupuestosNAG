@@ -163,11 +163,15 @@ function calcularTotal(presupuesto) {
     let total = 0;
     
     if (presupuesto.manoObra && Array.isArray(presupuesto.manoObra)) {
-        total += presupuesto.manoObra.reduce((sum, item) => sum + (item.total || 0), 0);
+        total += presupuesto.manoObra.reduce(
+                    (sum, item) => sum + (item.precio * item.cantidad), 0
+                );
     }
     
     if (presupuesto.repuestos && Array.isArray(presupuesto.repuestos)) {
-        total += presupuesto.repuestos.reduce((sum, item) => sum + (item.total || 0), 0);
+        total += presupuesto.repuestos.reduce(
+                    (sum, item) => sum + (item.precio * item.cantidad), 0
+                );
     }
     
     return total;
@@ -376,8 +380,8 @@ function generatePDFContent(doc, presupuesto) {
     doc.text('PERSONA DE CONTACTO', 20, 70);
     doc.setTextColor(0, 0, 0);
     
-    const telefono = presupuesto.telefono || 'Teléfono del Cliente';
-    const email = presupuesto.email || 'Email del Cliente';
+    const telefono = presupuesto.telefono || '(351) 817-6692';
+    const email = presupuesto.email || 'agosgulli9@gmail.com';
     doc.setFont('helvetica', 'bold');
     doc.text(`Teléfono: ${telefono}`, 20, 75);
     doc.text(`Email: ${email}`, 20, 80);
@@ -595,11 +599,11 @@ async function abrirGeneradorModal(presupuesto) {
     // Rellenar campos base
     document.getElementById('cliente').value = presupuesto.cliente || '';
     document.getElementById('numeroPresupuesto').value = presupuesto.numero || '';
-    document.getElementById('fechaCreacion').value = presupuesto.fecha || '';
-    document.getElementById('fechaVencimiento').value = presupuesto.vencimiento || '';
+    document.getElementById('fechaCreacion').value = formatearFecha(presupuesto.fecha);
+    document.getElementById('fechaVencimiento').value = formatearFecha(presupuesto.vencimiento);
     document.getElementById('patente').value = presupuesto.patente || '';
-    document.getElementById('telefono').value = presupuesto.telefono || '';
-    document.getElementById('email').value = presupuesto.email || '';
+    document.getElementById('telefono').value = presupuesto.contactoNumero || '';
+    document.getElementById('email').value = presupuesto.contactoEmail || '';
 
     // Limpiar items previos
     document.getElementById('itemsManoObraContainer').innerHTML = '';
@@ -650,57 +654,59 @@ function cerrarGeneradorModal() {
 
 async function generatePDF() {
     try {
-    const presupuesto = recolectarDatosDelFormulario();
-    const idExistente = presupuesto.id;
+        const presupuesto = recolectarDatosDelFormulario();
+        const idExistente = idPresupuestoActual;
 
-    // Eliminar archivo anterior si estamos editando
-    if (idExistente) {
-        await fetch(SCRIPT_URL_SEARCH, {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'eliminar', id: idExistente })
+        // Eliminar archivo anterior si estamos editando
+        if (idExistente) {
+            const formData = new URLSearchParams();
+            formData.append('action', 'eliminar');
+            formData.append('id', idExistente);
+
+            await fetch(SCRIPT_URL_SEARCH, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+        }
+
+        // Generar nuevo PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        generatePDFContent(doc, presupuesto);
+
+        const pdfBlob = doc.output('blob');
+
+        const response = await fetch(SCRIPT_URL_SEARCH, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `action=guardar&json=${encodeURIComponent(JSON.stringify(presupuesto))}`
         });
-    }
 
-    // Generar nuevo PDF
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    generatePDFContent(doc, presupuesto);
+        if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
 
-    const pdfBlob = doc.output('blob');
-
-    // Armar FormData para enviar al backend
-    const formData = new FormData();
-    formData.append('json', new Blob([JSON.stringify(presupuesto)], { type: 'application/json' }));
-
-
-    // Enviar al backend (Apps Script)
-    const response = await fetch(SCRIPT_URL_SEARCH, {
-        method: 'POST',
-        body: formData
-    });
-
-    if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
-
-    alert('Presupuesto generado y guardado correctamente');
-    cerrarGeneradorModal(); // opcional
-    cargarPresupuestos();   // si querés refrescar la lista
+        alert('Presupuesto generado y guardado correctamente');
+        cerrarGeneradorModal(); // opcional
+        cargarPresupuestos();   // si querés refrescar la lista
 
     } catch (error) {
-    console.error('Error al generar PDF:', error);
-    alert('Hubo un error: ' + error.message);
+        console.error('Error al generar PDF:', error);
+        alert('Hubo un error: ' + error.message);
     }
 }
-
 
 function recolectarDatosDelFormulario() {
     const presupuesto = {
         //id: document.getElementById('presupuestoId').value || null,
         cliente: document.getElementById('cliente').value || '',
         numero: document.getElementById('numeroPresupuesto').value || '',
-        fecha: document.getElementById('fechaCreacion').value || '',
-        vencimiento: document.getElementById('fechaVencimiento').value || '',
+        fecha: formatearFecha(document.getElementById('fechaCreacion').value) || '',
+        vencimiento: formatearFecha(document.getElementById('fechaVencimiento').value) || '',
         patente: document.getElementById('patente').value || '',
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
@@ -729,5 +735,14 @@ function recolectarDatosDelFormulario() {
     });
 
     return presupuesto;
+}
+function formatearFecha(fechaStr) {
+    if (!fechaStr) return '';
+    if (fechaStr.includes('-')) {
+        const [anio, mes, dia] = fechaStr.split('-');
+        return `${dia}/${mes}/${anio}`;
+    }
+    const [dia, mes, anio] = fechaStr.split('/');
+    return `${anio}-${mes}-${dia}`;
 }
 
