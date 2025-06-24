@@ -1,5 +1,6 @@
 let presupuestos = [];
 let presupuestosFiltrados = [];
+let idPresupuestoActual = null;
 
 // Configuración de Google Apps Script para el buscador
 const SCRIPT_URL_SEARCH = 'https://script.google.com/macros/s/AKfycbyLwSEu6uYWjBM0-OrYQbXb6G9H4aV2TehSWCh0W9Yf_B3yKtrvSkuVXZ9Fbyy0uutsjQ/exec';
@@ -9,7 +10,7 @@ const SCRIPT_URL_SEARCH = 'https://script.google.com/macros/s/AKfycbyLwSEu6uYWjB
 
 function initializeBuscador() {
     // Cargar presupuestos al inicializar
-    cargarPresupuestos();
+    //cargarPresupuestos();
     
     // Event listeners para filtros
     document.getElementById('filtroCliente').addEventListener('input', filtrarPresupuestos);
@@ -140,16 +141,16 @@ function mostrarResultados() {
             <td>$${calcularTotal(presupuesto).toLocaleString()}</td>
             <td class="acciones">
                 <button class="btn-accion btn-ver" onclick="verPresupuesto('${presupuesto.id}')" title="Ver">
-                    Ver
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
                 <button class="btn-accion btn-descargar" onclick="descargarPresupuesto('${presupuesto.id}')" title="Descargar">
-                    Descargar
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
                 <button class="btn-accion btn-editar" onclick="editarPresupuesto('${presupuesto.id}')" title="Editar">
-                    Editar
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
                 <button class="btn-accion btn-eliminar" onclick="eliminarPresupuesto('${presupuesto.id}')" title="Eliminar">
-                    Borrar
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M3 6h18M8 6V4h8v2m-6 0v14m4-14v14M5 6v14h14V6"/></svg>
                 </button>
             </td>
         `;
@@ -258,7 +259,6 @@ async function descargarPresupuesto(id) {
     }
 }
 
-
 function editarPresupuesto(id) {
     try {
         const presupuesto = presupuestos.find(p => p.id === id);
@@ -266,17 +266,9 @@ function editarPresupuesto(id) {
             alert('Presupuesto no encontrado');
             return;
         }
-        
-        // Guardar datos en localStorage para el generador
-        localStorage.setItem('editarPresupuesto', JSON.stringify(presupuesto));
-        
-        // Cambiar a la página del generador
-        if (typeof loadPage === 'function') {
-            loadPage('generador');
-        } else {
-            alert('Función de navegación no disponible. Guarda estos datos y ve al generador manualmente.');
-        }
-        
+        idPresupuestoActual = id; // Guardar el ID del presupuesto actual
+        abrirGeneradorModal(presupuesto)
+
     } catch (error) {
         console.error('Error al editar presupuesto:', error);
         alert('Error al cargar el presupuesto para edición: ' + error.message);
@@ -595,3 +587,147 @@ items.forEach((item) => {
     // Footer final
     addPageFooter(doc, currentPage, telefono);
 }
+
+async function abrirGeneradorModal(presupuesto) {
+    // Mostrar modal
+    document.getElementById('generadorModal').style.display = 'block';
+
+    // Rellenar campos base
+    document.getElementById('cliente').value = presupuesto.cliente || '';
+    document.getElementById('numeroPresupuesto').value = presupuesto.numero || '';
+    document.getElementById('fechaCreacion').value = presupuesto.fecha || '';
+    document.getElementById('fechaVencimiento').value = presupuesto.vencimiento || '';
+    document.getElementById('patente').value = presupuesto.patente || '';
+    document.getElementById('telefono').value = presupuesto.telefono || '';
+    document.getElementById('email').value = presupuesto.email || '';
+
+    // Limpiar items previos
+    document.getElementById('itemsManoObraContainer').innerHTML = '';
+    document.getElementById('itemsContainer').innerHTML = '';
+
+    // Cargar items de mano de obra
+    (presupuesto.manoObra || []).forEach(item => {
+        addItemManoObra(item.descripcion, item.precio, item.cantidad);
+    });
+
+    // Cargar repuestos
+    (presupuesto.repuestos || []).forEach(item => {
+        addItem(item.descripcion, item.precio, item.cantidad);
+    });
+
+    calculateTotals(); // Actualizar totales
+}
+function addItemManoObra(desc = '', precio = '', cantidad = 1) {
+    const container = document.getElementById('itemsManoObraContainer');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+        <input type="text" class="item-desc-mano" placeholder="Descripción" value="${desc}">
+        <input type="number" class="item-price-mano" placeholder="Precio" value="${precio}" oninput="calculateTotals()">
+        <input type="number" class="item-qty-mano" placeholder="Cant." value="${cantidad}" oninput="calculateTotals()">
+        <input type="number" class="item-total-mano" placeholder="Total" readonly>
+        <button class="remove-btn" onclick="removeItem(this)">×</button>
+    `;
+    container.appendChild(row);
+}
+
+function addItem(desc = '', precio = '', cantidad = 1) {
+    const container = document.getElementById('itemsContainer');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+        <input type="text" class="item-desc" placeholder="Descripción" value="${desc}">
+        <input type="number" class="item-price" placeholder="Precio" value="${precio}" oninput="calculateTotals()">
+        <input type="number" class="item-qty" placeholder="Cant." value="${cantidad}" oninput="calculateTotals()">
+        <input type="number" class="item-total" placeholder="Total" readonly>
+        <button class="remove-btn" onclick="removeItem(this)">×</button>
+    `;
+    container.appendChild(row);
+}
+function cerrarGeneradorModal() {
+    document.getElementById('generadorModal').style.display = 'none';
+}
+
+async function generatePDF() {
+    try {
+    const presupuesto = recolectarDatosDelFormulario();
+    const idExistente = presupuesto.id;
+
+    // Eliminar archivo anterior si estamos editando
+    if (idExistente) {
+        await fetch(SCRIPT_URL_SEARCH, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'eliminar', id: idExistente })
+        });
+    }
+
+    // Generar nuevo PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    generatePDFContent(doc, presupuesto);
+
+    const pdfBlob = doc.output('blob');
+
+    // Armar FormData para enviar al backend
+    const formData = new FormData();
+    formData.append('json', new Blob([JSON.stringify(presupuesto)], { type: 'application/json' }));
+
+
+    // Enviar al backend (Apps Script)
+    const response = await fetch(SCRIPT_URL_SEARCH, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
+
+    alert('Presupuesto generado y guardado correctamente');
+    cerrarGeneradorModal(); // opcional
+    cargarPresupuestos();   // si querés refrescar la lista
+
+    } catch (error) {
+    console.error('Error al generar PDF:', error);
+    alert('Hubo un error: ' + error.message);
+    }
+}
+
+
+function recolectarDatosDelFormulario() {
+    const presupuesto = {
+        //id: document.getElementById('presupuestoId').value || null,
+        cliente: document.getElementById('cliente').value || '',
+        numero: document.getElementById('numeroPresupuesto').value || '',
+        fecha: document.getElementById('fechaCreacion').value || '',
+        vencimiento: document.getElementById('fechaVencimiento').value || '',
+        patente: document.getElementById('patente').value || '',
+        telefono: document.getElementById('telefono').value || '',
+        email: document.getElementById('email').value || '',
+        manoObra: [],
+        repuestos: []
+    };
+
+    // Recolectar items de mano de obra
+    const manoObraRows = document.querySelectorAll('#itemsManoObraContainer .item-row');
+    manoObraRows.forEach(row => {
+        const descripcion = row.querySelector('.item-desc-mano')?.value || '';
+        const precio = parseFloat(row.querySelector('.item-price-mano')?.value) || 0;
+        const cantidad = parseInt(row.querySelector('.item-qty-mano')?.value) || 1;
+
+        presupuesto.manoObra.push({ descripcion, precio, cantidad });
+    });
+
+    // Recolectar items de repuestos
+    const repuestosRows = document.querySelectorAll('#itemsContainer .item-row');
+    repuestosRows.forEach(row => {
+        const descripcion = row.querySelector('.item-desc')?.value || '';
+        const precio = parseFloat(row.querySelector('.item-price')?.value) || 0;
+        const cantidad = parseInt(row.querySelector('.item-qty')?.value) || 1;
+
+        presupuesto.repuestos.push({ descripcion, precio, cantidad });
+    });
+
+    return presupuesto;
+}
+
