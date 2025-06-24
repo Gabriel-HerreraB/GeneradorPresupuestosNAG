@@ -504,13 +504,13 @@ function generatePDF() {
         // Agregar título de la relación
         checkNewPage(12);
         ensureTableHeader();
-        
         const letter = String.fromCharCode(64 + rel.repuestos);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(yellowColor[0], yellowColor[1], yellowColor[2]);
         doc.text(`Presupuesto: ${relationIndex + 1}`, 20, yPosition + 6);
         yPosition += 10;
+
         doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
@@ -558,7 +558,7 @@ function generatePDF() {
                 }
             });
         }
-        
+
         // Línea divisoria entre mano de obra y repuestos
         checkNewPage(4);
         doc.setDrawColor(0, 0, 0);
@@ -611,21 +611,109 @@ function generatePDF() {
         }
         
         // Línea divisoria entre relaciones (si no es la última)
-        if (relationIndex < relationships.length - 1) {
-            checkNewPage(8);
-            doc.setDrawColor(0, 0, 0);
-            doc.setLineWidth(1);
-            doc.line(20, yPosition + 4, 190, yPosition + 4);
-            yPosition += 8;
-        }
+            /* if (relationIndex < relationships.length - 1) {
+                checkNewPage(8);
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(1);
+                doc.line(20, yPosition + 4, 190, yPosition + 4);
+                yPosition += 8;
+            } */
     });
     
     // Verificar espacio para totales y aclaraciones
-    checkNewPage(80);
-    
+    const maxBoxesPerRow = 2; // Máximo 2 cajas por fila
+    const boxWidth = 80; // Ancho fijo cómodo para lectura
+    const boxHeight = 35; // Alto de cada caja
+    const spacing = 10; // Espacio entre cajas
+    const startX = 20;
+    let currentX = startX;
+    let currentRow = 0;
+
+    let totalRows = Math.ceil(relationships.length / maxBoxesPerRow);
+    const espacioTotales = (totalRows * (boxHeight + spacing)) + 40; // +40 para aclaraciones
+
+    // Verificar si necesitamos nueva página para los totales
+    checkNewPage(espacioTotales);    
     // ACLARACIONES Y CONDICIONES + TOTALES
-    yPosition += 15;
-    
+    yPosition += 5;
+
+    // Totales de relaciones
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    let totalYPosition = yPosition + 8;
+
+    relationships.forEach((rel, index) => {
+        const manoObraTotal = getSectionTotal('mano-obra', rel.manoObra);
+        const repuestosTotal = getSectionTotal('repuestos', rel.repuestos);
+        const relationTotal = manoObraTotal + repuestosTotal;
+        
+        // Calcular posición Y según la fila actual
+        const yPos = totalYPosition + (currentRow * (boxHeight + spacing));
+        
+        // Verificar si la caja completa cabe en la página
+        if (yPos + boxHeight > maxYPosition) {
+            addPageFooter(doc, currentPage, telefono);
+            doc.addPage();
+            currentPage++;
+            totalYPosition = 30; // Reiniciar posición en nueva página
+            currentX = startX;
+            currentRow = 0;
+            const yPos = totalYPosition + (currentRow * (boxHeight + spacing));
+        }
+
+        // Caja del presupuesto
+        doc.setDrawColor(150, 150, 150);
+        doc.setLineWidth(0.5);
+        doc.rect(currentX, yPos, boxWidth, boxHeight);
+        
+        // Título del presupuesto
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(yellowColor[0], yellowColor[1], yellowColor[2]);
+        doc.setDrawColor(0, 0, 0);
+        doc.text(`Presupuesto ${index + 1}:`, currentX + 2, yPos + 6);
+        
+        // Detalles
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        // Repuestos
+        doc.text(`Repuestos total aprox.: $ ${repuestosTotal.toLocaleString()}`, currentX + 2, yPos + 12);
+        
+        // Mano de obra
+        doc.text(`Mano de obra total: $ ${manoObraTotal.toLocaleString()}`, currentX + 2, yPos + 18);
+        
+        // Línea divisoria
+        doc.setDrawColor(100, 100, 100);
+        doc.line(currentX + 2, yPos + 22, currentX + boxWidth - 2, yPos + 22);
+        
+        // Total
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`TOTAL: $ ${relationTotal.toLocaleString()}`, currentX + 2, yPos + 24);
+        
+        // Mover a la siguiente posición
+        if ((index + 1) % maxBoxesPerRow === 0) {
+            // Nueva fila
+            currentX = startX;
+            currentRow++;
+        } else {
+            // Siguiente columna en la misma fila
+            currentX += boxWidth + spacing;
+        }
+            checkNewPage(20);
+
+    });
+
+    // Calcular cuántas filas se necesitaron
+    totalRows = Math.ceil(relationships.length / maxBoxesPerRow);
+    // Ajustar posición Y para el total final
+    totalYPosition += (totalRows * (boxHeight + spacing)) + 5;
+
+    yPosition = totalYPosition; // Ajustar posición Y para aclaraciones y condiciones
+    checkNewPage(30);
+
     // Aclaraciones
     doc.setTextColor(yellowColor[0], yellowColor[1], yellowColor[2]);
     doc.setFontSize(12);
@@ -643,7 +731,7 @@ function generatePDF() {
     aclaracionText.forEach((line, index) => {
         doc.text(line, 20, yPosition + 9 + (index * 4));
     });
-    
+
     // Condiciones de pago
     const condicionesY = yPosition + 15;
     doc.setTextColor(yellowColor[0], yellowColor[1], yellowColor[2]);
@@ -661,37 +749,6 @@ function generatePDF() {
     condicionesText.forEach((line, index) => {
         doc.text(line, 20, condicionesY + 20 + (index * 4));
     });
-    
-    // Totales de relaciones
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    let totalYPosition = yPosition + 12;
-    
-    relationships.forEach((rel, index) => {
-        const manoObraTotal = getSectionTotal('mano-obra', rel.manoObra);
-        const repuestosTotal = getSectionTotal('repuestos', rel.repuestos);
-        const relationTotal = manoObraTotal + repuestosTotal;
-        const letter = String.fromCharCode(64 + rel.repuestos);
-        
-        doc.text(`Mano de Obra ${rel.manoObra} + Repuestos ${letter}`, 120, totalYPosition);
-        doc.text(`${relationTotal.toLocaleString()}`, 165, totalYPosition);
-        totalYPosition += 6;
-    });
-    
-    // Línea divisoria
-    doc.setDrawColor(150, 150, 150);
-    doc.line(120, totalYPosition + 2, 190, totalYPosition + 2);
-    
-    // Total final
-    const grandTotal = parseFloat(document.getElementById('totalFinal').textContent.replace(/[$,]/g, '')) || 0;
-    doc.setFillColor(darkGray[0], darkGray[1], darkGray[2]);
-    doc.rect(120, totalYPosition + 4, 70, 12, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL', 125, totalYPosition + 12);
-    doc.text(`${grandTotal.toLocaleString()}`, 185, totalYPosition + 12, { align: 'right' });
-    
     // Footer final
     addPageFooter(doc, currentPage, telefono);
     
@@ -699,36 +756,5 @@ function generatePDF() {
     const fileName = `Presupuesto_${cliente.replace(/\s+/g, '_')}_${fechaCreacion.replace(/\//g, '-')}.pdf`;
     doc.save(fileName);
     alert("✅ PDF generado correctamente");
-    
-    // Crear JSON con los datos
-    const presupuestoJSON = {
-        cliente: cliente,
-        patente: document.getElementById('patente').value || "",
-        numero: numeroPresupuesto,
-        fecha: fechaCreacion,
-        vencimiento: fechaVencimiento,
-        relaciones: relationships.map(rel => ({
-            manoObraId: rel.manoObra,
-            repuestosId: rel.repuestos,
-            manoObra: Array.from(document.querySelectorAll(`#itemsManoObraContainer${rel.manoObra} .item-row`)).map(item => ({
-                descripcion: item.querySelector('.item-desc-mano').value,
-                precio: parseFloat(item.querySelector('.item-price-mano').value) || 0,
-                cantidad: parseFloat(item.querySelector('.item-qty-mano').value) || 1,
-                total: parseFloat(item.querySelector('.item-total-mano').value) || 0
-            })),
-            repuestos: Array.from(document.querySelectorAll(`#itemsContainer${rel.repuestos} .item-row`)).map(item => ({
-                descripcion: item.querySelector('.item-desc').value,
-                precio: parseFloat(item.querySelector('.item-price').value) || 0,
-                cantidad: parseFloat(item.querySelector('.item-qty').value) || 1,
-                total: parseFloat(item.querySelector('.item-total').value) || 0
-            }))
-        })),
-        telefono: document.getElementById('telefono').value || '',
-        email: document.getElementById('email').value || '',
-        totalFinal: grandTotal
-    };
-    
-    // Enviar JSON a través de un form oculto (sin CORS)
-    document.getElementById('jsonDataInput').value = JSON.stringify(presupuestoJSON);
     document.getElementById('uploadForm').submit();
 }
