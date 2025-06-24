@@ -13,7 +13,7 @@ body {
 
 /* Navbar */
 .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50, #991414);
     padding: 1rem 2rem;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -22,9 +22,8 @@ body {
 }
 
 .nav-brand h1 {
-    color: #ffc107;
+    color: #ffffff;
     font-size: 1.8rem;
-    margin-bottom: 0.2rem;
 }
 
 .nav-brand span {
