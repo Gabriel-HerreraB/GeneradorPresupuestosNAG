@@ -152,6 +152,9 @@ function mostrarResultados() {
                 <button class="btn-accion btn-eliminar" onclick="eliminarPresupuesto('${presupuesto.id}')" title="Eliminar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M3 6h18M8 6V4h8v2m-6 0v14m4-14v14M5 6v14h14V6"/></svg>
                 </button>
+                <button class="btn-accion btn-wsp" onclick="abrirWhatsappModal(presupuestos[${index}])" title="Enviar WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </button>
             </td>
         `;
         tbody.appendChild(row);
@@ -745,4 +748,40 @@ function formatearFecha(fechaStr) {
     const [dia, mes, anio] = fechaStr.split('/');
     return `${anio}-${mes}-${dia}`;
 }
+function abrirWhatsappModal(presupuesto) {
+    const cliente = presupuesto.cliente;
+    const patente = presupuesto.patente;
+    const telefono = presupuesto.telefonoCliente || presupuesto.telefono || '';
+    const total = calcularTotal(presupuesto).toLocaleString();
+
+    document.getElementById('whatsappCliente').value = cliente;
+    document.getElementById('whatsappPatente').value = patente;
+    document.getElementById('whatsappTelefono').value = telefono;
+    document.getElementById('whatsappTotal').value = total;
+
+    // Mensaje predeterminado
+    document.getElementById('whatsappMensaje').value =
+    `Hola, te informamos que tu vehículo está listo para ser retirado.
+    Muchas gracias por elegirnos.
+    Dirección: Int. Ramón B. Mestre 3752
+    *-NeumáticosAG*`;
+
+    document.getElementById('whatsappModal').style.display = 'block';
+}
+function cerrarWhatsappModal() {
+    document.getElementById('whatsappModal').style.display = 'none';
+}
+function enviarWhatsapp() {
+    const telefono = document.getElementById('whatsappTelefono').value.replace(/\D/g, '');
+    const mensaje = encodeURIComponent(document.getElementById('whatsappMensaje').value);
+
+    if (!telefono) {
+        alert("Teléfono no válido.");
+        return;
+    }
+
+    const url = `https://wa.me/54${telefono}?text=${mensaje}`;
+    window.open(url, '_blank');
+}
+
 
