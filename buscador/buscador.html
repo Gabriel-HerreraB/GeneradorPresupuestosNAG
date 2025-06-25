@@ -179,3 +179,45 @@
         </div>
     </div>
 </div>
+
+
+<!-- Modal WhatsApp -->
+<div id="whatsappModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="generador-container">
+        <div class="header">
+            <h1>Enviar WhatsApp</h1>
+            <span class="close" onclick="cerrarWhatsappModal()">×</span>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="whatsappCliente">Cliente:</label>
+                <input type="text" id="whatsappCliente" disabled>
+            </div>
+            <div class="form-group">
+                <label for="whatsappPatente">Patente:</label>
+                <input type="text" id="whatsappPatente" disabled>
+            </div>
+            <div class="form-group">
+                <label for="whatsappTotal">Total:</label>
+                <input type="text" id="whatsappTotal" disabled>
+            </div>
+            <div class="form-group">
+                <label for="whatsappTelefono">Telefono:</label>
+                <input type="text" id="whatsappTelefono">
+            </div>
+            <div class="form-group">
+                <label for="whatsappMensaje">Mensaje</label>
+                <textarea id="whatsappMensaje" rows="4" style="width: 100%;">
+                    Hola, te informamos que tu vehículo está listo para ser retirado. 
+                    Muchas gracias por elegirnos.
+                    Dirección: Int. Ramón B. Mestre 3752
+                    *- NeumáticosAG*
+                </textarea>
+            </div>
+            <button class="generate-btn" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
+        </div>
+        </div>
+    </div>
+</div>

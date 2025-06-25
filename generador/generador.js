@@ -464,6 +464,7 @@ items.forEach((item) => {
         })),
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
+        telefonoCliente: document.getElementById('telefonoCliente').value ||''
     };
 
     // Enviar JSON a través de un form oculto (sin CORS)
