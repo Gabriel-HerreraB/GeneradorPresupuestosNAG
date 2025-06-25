@@ -664,7 +664,7 @@ function generatePDF() {
         // Caja del presupuesto
         doc.setDrawColor(150, 150, 150);
         doc.setLineWidth(0.5);
-        doc.rect(currentX, yPos, boxWidth, boxHeight);
+        //doc.rect(currentX, yPos, boxWidth, boxHeight);
         
         // Título del presupuesto
         doc.setFontSize(12);
@@ -689,9 +689,19 @@ function generatePDF() {
         doc.line(currentX + 2, yPos + 22, currentX + boxWidth - 2, yPos + 22);
         
         // Total
-        doc.setFontSize(12);
+        const totalTexto = `TOTAL: $ ${relationTotal.toLocaleString()}`;
+        const rectX = currentX;
+        const rectY = yPos + 23; 
+        const rectWidth = 70;
+        const rectHeight = 12;
+        doc.setFillColor(darkGray[0], darkGray[1], darkGray[2]);
+        doc.rect(rectX, rectY, rectWidth, rectHeight, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text(`TOTAL: $ ${relationTotal.toLocaleString()}`, currentX + 2, yPos + 24);
+        doc.text(totalTexto, rectX + 5, rectY + 8); 
+
         
         // Mover a la siguiente posición
         if ((index + 1) % maxBoxesPerRow === 0) {
