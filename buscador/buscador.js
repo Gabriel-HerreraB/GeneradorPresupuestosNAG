@@ -714,7 +714,8 @@ function recolectarDatosDelFormulario() {
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
         manoObra: [],
-        repuestos: []
+        repuestos: [],
+        telefonoCliente : document.getElementById('telefonoCliente') || ''
     };
 
     // Recolectar items de mano de obra
@@ -761,10 +762,12 @@ function abrirWhatsappModal(presupuesto) {
 
     // Mensaje predeterminado
     document.getElementById('whatsappMensaje').value =
-    `Hola, te informamos que tu vehículo está listo para ser retirado.
-    Muchas gracias por elegirnos.
-    Dirección: Int. Ramón B. Mestre 3752
-    *-NeumáticosAG*`;
+    `Hola! te informamos que su servicio está listo para ser retirado 🤗
+Muchas gracias por elegirnos ✨
+📍 *Dirección:* Int. Ramón B. Mestre 3752 
+🕒 *Horarios:* 8:30 a 18:00
+   
+*-NeumáticosAG*`;
 
     document.getElementById('whatsappModal').style.display = 'block';
 }
