@@ -23,6 +23,8 @@ function initializeBuscador() {
     
     // Event listener para limpiar filtros
     document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
+    initializeManoObra();
+
 }
 
 // Función para cargar presupuestos desde Google Drive
@@ -154,6 +156,9 @@ function mostrarResultados() {
                 </button>
                 <button class="btn-accion btn-wsp" onclick="abrirWhatsappModal(presupuestos[${index}])" title="Enviar WhatsApp">
                     <i class="fab fa-whatsapp"></i>
+                </button>
+                <button class="btn-accion btn-mano-obra" onclick="abrirManoObraModal('${presupuesto.id}')" title="Mano de Obra">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </td>
         `;
@@ -728,8 +733,9 @@ function recolectarDatosDelFormulario() {
         const descripcion = row.querySelector('.item-desc-mano')?.value || '';
         const precio = parseFloat(row.querySelector('.item-price-mano')?.value) || 0;
         const cantidad = parseInt(row.querySelector('.item-qty-mano')?.value) || 1;
+        const total = precio * cantidad || 0;
 
-        presupuesto.manoObra.push({ descripcion, precio, cantidad });
+        presupuesto.manoObra.push({ descripcion, precio, cantidad, total });
     });
 
     // Recolectar items de repuestos
@@ -738,8 +744,9 @@ function recolectarDatosDelFormulario() {
         const descripcion = row.querySelector('.item-desc')?.value || '';
         const precio = parseFloat(row.querySelector('.item-price')?.value) || 0;
         const cantidad = parseInt(row.querySelector('.item-qty')?.value) || 1;
+        const total = precio * cantidad || 0;
 
-        presupuesto.repuestos.push({ descripcion, precio, cantidad });
+        presupuesto.repuestos.push({ descripcion, precio, cantidad, total });
     });
 
     return presupuesto;
@@ -753,6 +760,12 @@ function formatearFecha(fechaStr) {
     const [dia, mes, anio] = fechaStr.split('/');
     return `${anio}-${mes}-${dia}`;
 }
+
+/*
+===================================================================
+                WSP MENSAJE
+===================================================================
+*/
 function abrirWhatsappModal(presupuesto) {
     const cliente = presupuesto.cliente;
     const patente = presupuesto.patente;
@@ -770,7 +783,7 @@ function abrirWhatsappModal(presupuesto) {
 Muchas gracias por elegirnos ✨
 📍 *Dirección:* Int. Ramón B. Mestre 3752 
 🕒 *Horarios:* 8:30 a 18:00
-   
+
 *-NeumáticosAG*`;
 
     document.getElementById('whatsappModal').style.display = 'block';
@@ -790,5 +803,221 @@ function enviarWhatsapp() {
     const url = `https://wa.me/54${telefono}?text=${mensaje}`;
     window.open(url, '_blank');
 }
+/*
+===================================================================
+            MANO DE OBRA CHECKS
+===================================================================
+*/
+let manoObraActual = null;
+let presupuestoSeleccionado = null;
+
+// Función para abrir el modal de mano de obra
+async function abrirManoObraModal(presupuestoId) {
+    try {
+        // Buscar el presupuesto seleccionado
+        presupuestoSeleccionado = presupuestos.find(p => p.id === presupuestoId);
+        if (!presupuestoSeleccionado) {
+            alert('Presupuesto no encontrado');
+            return;
+        }
+
+        // Mostrar el modal
+        const modal = document.getElementById('manoObraModal');
+        modal.style.display = 'block';
+
+        // Cargar información del presupuesto
+        cargarInfoPresupuesto(presupuestoSeleccionado);
+
+        // Cargar estado de mano de obra (si existe)
+        await cargarEstadoManoObra(presupuestoId);
+
+        // Generar la lista de manos de obra
+        generarListaManoObra(presupuestoSeleccionado.manoObra || []);
+
+    } catch (error) {
+        console.error('Error al abrir modal de mano de obra:', error);
+        alert('Error al cargar la información: ' + error.message);
+    }
+}
+
+// Función para cargar información del presupuesto en el modal
+function cargarInfoPresupuesto(presupuesto) {
+    document.getElementById('infoCliente').textContent = presupuesto.cliente || 'N/A';
+    document.getElementById('infoPatente').textContent = presupuesto.patente || 'N/A';
+    document.getElementById('infoFecha').textContent = presupuesto.fecha || 'N/A';
+    document.getElementById('infoVencimiento').textContent = presupuesto.vencimiento || 'N/A';
+    document.getElementById('infoNumero').textContent = presupuesto.numero || 'N/A';
+}
+
+// Función para cargar el estado existente de mano de obra
+async function cargarEstadoManoObra(presupuestoId) {
+    try {
+        const response = await fetch(`${SCRIPT_URL_SEARCH}?action=obtenerManoObra&presupuestoId=${presupuestoId}`, {
+            method: 'GET',
+            mode: 'cors'
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (data.success && data.manoObra) {
+            manoObraActual = data.manoObra;
+        } else {
+            // No existe registro previo, crear uno nuevo
+            manoObraActual = {
+                presupuestoId: presupuestoId,
+                cliente: presupuestoSeleccionado.cliente,
+                patente: presupuestoSeleccionado.patente,
+                fecha: presupuestoSeleccionado.fecha,
+                items: []
+            };
+        }
+    } catch (error) {
+        console.error('Error al cargar estado de mano de obra:', error);
+        // En caso de error, crear un registro nuevo
+        manoObraActual = {
+            presupuestoId: presupuestoId,
+            cliente: presupuestoSeleccionado.cliente,
+            patente: presupuestoSeleccionado.patente,
+            fecha: presupuestoSeleccionado.fecha,
+            items: []
+        };
+    }
+}
+
+// Función para generar la lista de manos de obra con checkboxes
+function generarListaManoObra(manoObraItems) {
+    const container = document.getElementById('listaManoObra');
+    container.innerHTML = '';
+
+    if (!manoObraItems || manoObraItems.length === 0) {
+        container.innerHTML = '<p class="no-items">No hay manos de obra en este presupuesto</p>';
+        return;
+    }
+
+    manoObraItems.forEach((item, index) => {
+        // Verificar si este item ya está marcado como realizado
+        const itemExistente = manoObraActual.items.find(i => i.index === index);
+        const isChecked = itemExistente ? itemExistente.realizado : false;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'mano-obra-item';
+        itemDiv.innerHTML = `
+            <div class="checkbox-container">
+                <input type="checkbox" 
+                       id="mano_${index}" 
+                       class="mano-obra-checkbox" 
+                       ${isChecked ? 'checked' : ''}
+                       onchange="actualizarEstadoItem(${index}, this.checked)">
+                <label for="mano_${index}" class="checkbox-label"></label>
+            </div>
+            <div class="item-details">
+                <div class="item-descripcion">${item.descripcion}</div>
+                <div class="item-info">
+                    <span class="item-precio">$${item.precio.toLocaleString()}</span>
+                    <span class="item-cantidad">Cantidad: ${item.cantidad}</span>
+                    <span class="item-total">Total: $${item.total.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(itemDiv);
+    });
+}
+
+// Función para actualizar el estado de un item específico
+function actualizarEstadoItem(index, realizado) {
+    const itemIndex = manoObraActual.items.findIndex(i => i.index === index);
+    
+    if (itemIndex >= 0) {
+        manoObraActual.items[itemIndex].realizado = realizado;
+        if (!realizado) {
+            manoObraActual.items[itemIndex].fechaRealizacion = null;
+        } else {
+            manoObraActual.items[itemIndex].fechaRealizacion = new Date().toISOString();
+        }
+    } else {
+        // Agregar nuevo item
+        const manoObraItem = presupuestoSeleccionado.manoObra[index];
+        manoObraActual.items.push({
+            index: index,
+            descripcion: manoObraItem.descripcion,
+            precio: manoObraItem.precio,
+            cantidad: manoObraItem.cantidad,
+            total: manoObraItem.total,
+            realizado: realizado,
+            fechaRealizacion: realizado ? new Date().toISOString() : null
+        });
+    }
+}
 
 
+// Función para guardar el estado de mano de obra
+async function guardarManoObra() {
+    try {
+        if (!manoObraActual) {
+            alert('No hay datos para guardar');
+            return;
+        }
+
+        const loadingDiv = document.getElementById('loadingIndicator');
+        loadingDiv.style.display = 'block';
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'guardarManoObra');
+        formData.append('data', JSON.stringify(manoObraActual));
+
+        const response = await fetch(SCRIPT_URL_SEARCH, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Estado de mano de obra guardado correctamente');
+            cerrarManoObraModal();
+        } else {
+            throw new Error(data.error || 'Error desconocido al guardar');
+        }
+
+    } catch (error) {
+        console.error('Error al guardar mano de obra:', error);
+        alert('Error al guardar el estado: ' + error.message);
+    } finally {
+        document.getElementById('loadingIndicator').style.display = 'none';
+    }
+}
+
+// Función para cerrar el modal
+function cerrarManoObraModal() {
+    const modal = document.getElementById('manoObraModal');
+    modal.style.display = 'none';
+    manoObraActual = null;
+    presupuestoSeleccionado = null;
+}
+
+// Función para inicializar el sistema de mano de obra
+function initializeManoObra() {
+    // Agregar event listeners para cerrar modal
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('manoObraModal');
+        if (event.target === modal) {
+            cerrarManoObraModal();
+        }
+    });
+
+    // Event listener para la tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('manoObraModal');
+            if (modal.style.display === 'block') {
+                cerrarManoObraModal();
+            }
+        }
+    });
+}

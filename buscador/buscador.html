@@ -216,13 +216,65 @@
                 <textarea id="whatsappMensaje" rows="4" style="width: 100%;">
                     Hola! te informamos que su servicio está listo para ser retirado 🤗
 Muchas gracias por elegirnos ✨
-📍 *Dirección:* Int. Ramón B. Mestre 3752 
-🕒 *Horarios:* 8:30 a 18:00
-   
+📍  *Dirección:* Int. Ramón B. Mestre 3752 
+🕒  *Horarios:* 8:30 a 18:00
+
 *-NeumáticosAG*
                 </textarea>
             </div>
             <button class="generate-btn" onclick="enviarWhatsapp()">Enviar WhatsApp</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Control de Mano de Obra -->
+<div id="manoObraModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="generador-container">
+                <div class="header">
+            <h1>Control de Mano de Obra</h1>
+            <span class="close" onclick="cerrarManoObraModal()">×</span>
+        </div>
+
+        <div class="form-section">
+            
+            <!-- Información del Presupuesto -->
+            <div class="info-presupuesto">
+            <h3>Información del Presupuesto</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                <span class="info-label">Cliente:</span>
+                <span class="info-value" id="infoCliente">-</span>
+                </div>
+                <div class="info-item">
+                <span class="info-label">Patente:</span>
+                <span class="info-value" id="infoPatente">-</span>
+                </div>
+                <div class="info-item">
+                <span class="info-label">Fecha:</span>
+                <span class="info-value" id="infoFecha">-</span>
+                </div>
+                <div class="info-item">
+                <span class="info-label">Vencimiento:</span>
+                <span class="info-value" id="infoVencimiento">-</span>
+                </div>
+                <div class="info-item">
+                <span class="info-label">N° Presupuesto:</span>
+                <span class="info-value" id="infoNumero">-</span>
+                </div>
+            </div>
+            </div>
+
+            <!-- Lista de Mano de Obra -->
+            <div class="mano-obra-section">
+            <h3>Lista de Manos de Obra</h3>
+            <div id="listaManoObra" class="lista-mano-obra">
+                <!-- Items dinámicos -->
+            </div>
+            </div>
+
+            <button class="generate-btn" onclick="guardarManoObra()">Cambiar estado</button>
         </div>
         </div>
     </div>
