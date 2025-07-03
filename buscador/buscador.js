@@ -693,9 +693,13 @@ async function generatePDF() {
 
         if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
 
+        // Descargar PDF
+        const fileName = `Presupuesto_${presupuesto.cliente.replace(/\s+/g, '_')}_${presupuesto.fecha.replace(/\//g, '-')}.pdf`;
+        doc.save(fileName);
+
         alert('Presupuesto generado y guardado correctamente');
-        cerrarGeneradorModal(); // opcional
-        cargarPresupuestos();   // si querés refrescar la lista
+        cerrarGeneradorModal();
+        cargarPresupuestos();
 
     } catch (error) {
         console.error('Error al generar PDF:', error);
