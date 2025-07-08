@@ -163,7 +163,7 @@ function addPageFooter(doc, pageNumber, telefono) {
     doc.text(`Página ${pageNumber}`, 185, 290);
 }
 
-function generatePDF() {
+function generatePDF(descargar = false) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
@@ -438,10 +438,12 @@ items.forEach((item) => {
     addPageFooter(doc, currentPage, telefono);
 
     // Descargar PDF
-    const fileName = `Presupuesto_${cliente.replace(/\s+/g, '_')}_${fechaCreacion.replace(/\//g, '-')}.pdf`;
+    if(descargar){
+            const fileName = `Presupuesto_${cliente.replace(/\s+/g, '_')}_${fechaCreacion.replace(/\//g, '-')}.pdf`;
     doc.save(fileName);
+    }
 
-    alert("✅ PDF generado correctamente");
+    alert("✅ Presupuesto generado correctamente");
 
     // Crear JSON con los datos
     const presupuestoJSON = {
@@ -464,7 +466,7 @@ items.forEach((item) => {
         })),
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
-        telefonoCliente: document.getElementById('telefonoCliente').value ||''
+        telefonoCliente: document.getElementById('telefonoCliente').value || ''
     };
 
     // Enviar JSON a través de un form oculto (sin CORS)

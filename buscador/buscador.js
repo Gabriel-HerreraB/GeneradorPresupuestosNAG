@@ -5,13 +5,7 @@ let idPresupuestoActual = null;
 // Configuración de Google Apps Script para el buscador
 const SCRIPT_URL_SEARCH = 'https://script.google.com/macros/s/AKfycbyLwSEu6uYWjBM0-OrYQbXb6G9H4aV2TehSWCh0W9Yf_B3yKtrvSkuVXZ9Fbyy0uutsjQ/exec';
 
-// Inicializar el buscador cuando se carga la página
-//initializeBuscador();
-
 function initializeBuscador() {
-    // Cargar presupuestos al inicializar
-    //cargarPresupuestos();
-    
     // Event listeners para filtros
     document.getElementById('filtroCliente').addEventListener('input', filtrarPresupuestos);
     document.getElementById('filtroPatente').addEventListener('input', filtrarPresupuestos);
@@ -24,7 +18,6 @@ function initializeBuscador() {
     // Event listener para limpiar filtros
     document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
     initializeManoObra();
-
 }
 
 // Función para cargar presupuestos desde Google Drive
@@ -38,11 +31,11 @@ async function cargarPresupuestos() {
     loadingDiv.style.display = 'block';
 
     const queryParams = new URLSearchParams({
-    action: 'buscar',
-    cliente,
-    patente,
-    fechaDesde,
-    fechaHasta
+        action: 'buscar',
+        cliente,
+        patente,
+        fechaDesde,
+        fechaHasta
     });
 
     try {
@@ -63,9 +56,9 @@ async function cargarPresupuestos() {
         throw new Error(data.error || 'Error al buscar');
     }
     } catch (error) {
-    mostrarError('Error al buscar presupuestos: ' + error.message);
+        mostrarError('Error al buscar presupuestos: ' + error.message);
     } finally {
-    loadingDiv.style.display = 'none';
+        loadingDiv.style.display = 'none';
     }
 }
 
@@ -172,14 +165,14 @@ function calcularTotal(presupuesto) {
     
     if (presupuesto.manoObra && Array.isArray(presupuesto.manoObra)) {
         total += presupuesto.manoObra.reduce(
-                    (sum, item) => sum + (item.precio * item.cantidad), 0
-                );
+            (sum, item) => sum + (item.precio * item.cantidad), 0
+        );
     }
     
     if (presupuesto.repuestos && Array.isArray(presupuesto.repuestos)) {
         total += presupuesto.repuestos.reduce(
-                    (sum, item) => sum + (item.precio * item.cantidad), 0
-                );
+            (sum, item) => sum + (item.precio * item.cantidad), 0
+        );
     }
     
     return total;
@@ -610,8 +603,9 @@ async function abrirGeneradorModal(presupuesto) {
     document.getElementById('fechaCreacion').value = formatearFecha(presupuesto.fecha);
     document.getElementById('fechaVencimiento').value = formatearFecha(presupuesto.vencimiento);
     document.getElementById('patente').value = presupuesto.patente || '';
-    document.getElementById('telefono').value = presupuesto.contactoNumero || '';
-    document.getElementById('email').value = presupuesto.contactoEmail || '';
+    document.getElementById('telefono').value = presupuesto.telefono || '';
+    document.getElementById('email').value = presupuesto.email || '';
+    document.getElementById('telefonoCliente').value = presupuesto.telefonoCliente || '';
 
     // Limpiar items previos
     document.getElementById('itemsManoObraContainer').innerHTML = '';
@@ -660,7 +654,7 @@ function cerrarGeneradorModal() {
     document.getElementById('generadorModal').style.display = 'none';
 }
 
-async function generatePDF() {
+async function generatePDF(descargar = false) {
     try {
         const presupuesto = recolectarDatosDelFormulario();
         const idExistente = idPresupuestoActual;
@@ -699,10 +693,12 @@ async function generatePDF() {
         if (!response.ok) throw new Error('Error al subir el nuevo presupuesto');
 
         // Descargar PDF
-        const fileName = `Presupuesto_${presupuesto.cliente.replace(/\s+/g, '_')}_${presupuesto.fecha.replace(/\//g, '-')}.pdf`;
-        doc.save(fileName);
+        if(descargar){
+            const fileName = `Presupuesto_${presupuesto.cliente.replace(/\s+/g, '_')}_${presupuesto.fecha.replace(/\//g, '-')}.pdf`;
+            doc.save(fileName);
+        }
 
-        alert('Presupuesto generado y guardado correctamente');
+        alert('Presupuesto generado correctamente');
         cerrarGeneradorModal();
         cargarPresupuestos();
 
