@@ -1,0 +1,164 @@
+<div class="comparador-container">
+    <div class="header">
+        <h1>Comparador Presupuesto</h1>
+    </div>
+    
+    <div class="form-section">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="cliente">Cliente</label>
+                <input type="text" id="cliente" placeholder="Nombre del cliente">
+            </div>
+            <div class="form-group">
+                <label for="numeroPresupuesto">Número de Presupuesto</label>
+                <input type="text" id="numeroPresupuesto" placeholder="N° 001-000123">
+            </div>
+            <div class="form-group">
+                <label for="fechaCreacion">Fecha de Creación</label>
+                <input type="date" id="fechaCreacion">
+            </div>
+            <div class="form-group">
+                <label for="fechaVencimiento">Fecha de Vencimiento</label>
+                <input type="date" id="fechaVencimiento">
+            </div>
+            <div class="form-group">
+                <label for="patente">Patente</label>
+                <input type="text" id="patente" placeholder="Patente del vehículo">
+            </div>
+        </div>
+        
+        <div class="contact-info">
+            <h4>Datos de Contacto (Editables)</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" value="(351) 817-6692">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" value="agosgulli9@gmail.com">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de Secciones -->
+    <div class="section-management">
+        <button class="add-section-btn" onclick="addManoObraSection()">+ Agregar Sección Mano de Obra</button>
+        <button class="add-section-btn" onclick="addRepuestosSection()">+ Agregar Sección Repuestos</button>
+    </div>
+
+    <!-- Contenedor de Secciones de Mano de Obra -->
+    <div id="manoObraContainer">
+        <div class="items-section" data-section-type="mano-obra" data-section-id="1">
+            <div class="items-header">
+                <h3>Items de Mano de Obra 1</h3>
+                <div class="section-controls">
+                    <button class="add-item-btn" onclick="addItemManoObra(1)">+ Agregar Mano de Obra</button>
+                    <button class="remove-section-btn" onclick="removeManoObraSection(1)">× Eliminar Sección</button>
+                </div>
+            </div>
+            <div id="itemsManoObraContainer1">
+                <div class="item-row">
+                    <input type="text" placeholder="Descripción de la mano de obra" class="item-desc-mano">
+                    <input type="number" placeholder="Precio" class="item-price-mano" oninput="calculateTotals()">
+                    <input type="number" placeholder="Cant." class="item-qty-mano" value="1" oninput="calculateTotals()">
+                    <input type="number" placeholder="Total" class="item-total-mano" readonly>
+                    <button class="remove-btn" onclick="removeItem(this)">×</button>
+                </div>
+            </div>
+            <div class="section-total">
+                <span>Total Sección: <span id="totalManoObra1">$0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de Secciones -->
+    <div class="section-management">
+        <button class="add-section-btn" onclick="addManoObraSection()">+ Agregar Sección Mano de Obra</button>
+        <button class="add-section-btn" onclick="addRepuestosSection()">+ Agregar Sección Repuestos</button>
+    </div>
+
+    <!-- Contenedor de Secciones de Repuestos -->
+    <div id="repuestosContainer">
+        <div class="items-section" data-section-type="repuestos" data-section-id="1">
+            <div class="items-header">
+                <h3>Items de Repuestos A</h3>
+                <div class="section-controls">
+                    <button class="add-item-btn" onclick="addItem(1)">+ Agregar Repuesto</button>
+                    <button class="remove-section-btn" onclick="removeRepuestosSection(1)">× Eliminar Sección</button>
+                </div>
+            </div>
+            <div id="itemsContainer1">
+                <div class="item-row">
+                    <input type="text" placeholder="Descripción del servicio" class="item-desc">
+                    <input type="number" placeholder="Precio" class="item-price" oninput="calculateTotals()">
+                    <input type="number" placeholder="Cant." class="item-qty" value="1" oninput="calculateTotals()">
+                    <input type="number" placeholder="Total" class="item-total" readonly>
+                    <button class="remove-btn" onclick="removeItem(this)">×</button>
+                </div>
+            </div>
+            <div class="section-total">
+                <span>Total Sección: <span id="totalRepuestos1">$0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de Secciones -->
+    <div class="section-management">
+        <button class="add-section-btn" onclick="addManoObraSection()">+ Agregar Sección Mano de Obra</button>
+        <button class="add-section-btn" onclick="addRepuestosSection()">+ Agregar Sección Repuestos</button>
+    </div>
+
+    <!-- Sección de Relaciones -->
+    <div class="relationships-section">
+        <h3>Gestión de Relaciones</h3>
+        <p>Seleccione qué secciones de Mano de Obra se combinarán con qué secciones de Repuestos:</p>
+        
+        <div class="relationship-controls">
+            <div class="form-group">
+                <label for="manoObraSelect">Mano de Obra</label>
+                <select id="manoObraSelect">
+                    <option value="">Seleccionar Mano de Obra</option>
+                    <option value="1">Mano de Obra 1</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="repuestosSelect">Repuestos</label>
+                <select id="repuestosSelect">
+                    <option value="">Seleccionar Repuestos</option>
+                    <option value="1">Repuestos A</option>
+                </select>
+            </div>
+            <button class="add-relationship-btn" onclick="addRelationship()">+ Crear Relación</button>
+        </div>
+        
+        <div class="relationships-list">
+            <h4>Relaciones Activas:</h4>
+            <div id="relationshipsList">
+                <!-- Las relaciones se agregarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Totales -->
+    <div class="totals-section">
+        <h3>Totales por Relación</h3>
+        <div class="relationship-totals" id="relationshipTotals">
+            <!-- Los totales de relaciones se agregarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <button class="generate-btn" onclick="generatePDF()">
+        📄 Generar y Descargar PDF
+    </button>
+
+    <!-- <form id="uploadForm"
+            action="https://script.google.com/macros/s/AKfycbzcQVBv6Smd68Wk5swjbGcZM08hDj_d4hdBtPZstANhBIEZk6jloItikJx1CRjoXk4vOV/exec"
+            method="POST"
+            target="hiddenIframe"
+            style="display: none;">
+        <input type="hidden" name="json" id="jsonDataInput">
+    </form>
+    <iframe name="hiddenIframe" style="display:none;"></iframe> -->
+</div>
