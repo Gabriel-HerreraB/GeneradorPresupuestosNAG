@@ -127,6 +127,9 @@ function mostrarResultados() {
     
     presupuestosFiltrados.forEach((presupuesto, index) => {
         const row = document.createElement('tr');
+
+        const estaRealizado = presupuesto.realizado === true;
+
         row.innerHTML = `
             <td>${presupuesto.numero || 'N/A'}</td>
             <td>${presupuesto.cliente}</td>
@@ -134,6 +137,9 @@ function mostrarResultados() {
             <td>${presupuesto.fecha}</td>
             <td>${presupuesto.vencimiento}</td>
             <td>$${calcularTotal(presupuesto).toLocaleString()}</td>
+            <td style="text-align: center;">
+                <input type="checkbox" ${estaRealizado ? 'checked' : ''} onchange="confirmarCambioEstado(this, '${presupuesto.id}')">
+            </td>
             <td class="acciones">
                 <button class="btn-accion btn-ver" onclick="verPresupuesto('${presupuesto.id}')" title="Ver">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1016,4 +1022,71 @@ function initializeManoObra() {
             }
         }
     });
+}
+
+/*
+====================================================================
+                CHECK REALIZADO
+====================================================================
+*/
+function confirmarCambioEstado(checkbox, id) {
+    const estaMarcado = checkbox.checked;
+    const mensaje = estaMarcado 
+        ? "¿Querés marcar este trabajo como REALIZADO?" 
+        : "¿Querés marcar este trabajo como NO REALIZADO?";
+
+    if (!confirm(mensaje)) {
+        checkbox.checked = !estaMarcado; // revertir si cancelan
+        return;
+    }
+
+    const original = presupuestos.find(p => p.id === id);
+    if (!original) {
+        alert("Presupuesto no encontrado");
+        return;
+    }
+
+    const modificado = { ...original, realizado: estaMarcado };
+    actualizarEstadoRealizado(modificado);
+}
+
+
+async function actualizarEstadoRealizado(presupuestoModificado) {
+    try {
+        const id = presupuestoModificado.id;
+        if (!id) throw new Error("ID de presupuesto no definido");
+
+        // Paso 1: eliminar el anterior
+        const formData = new URLSearchParams();
+        formData.append('action', 'eliminar');
+        formData.append('id', id);
+
+        await fetch(SCRIPT_URL_SEARCH, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        });
+        
+        // Paso 2: guardar el nuevo JSON con el campo "realizado"
+        const response = await fetch(SCRIPT_URL_SEARCH, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `action=guardar&json=${encodeURIComponent(JSON.stringify(presupuestoModificado))}`
+        });
+
+        if (!response.ok) throw new Error("Error al guardar el nuevo presupuesto");
+
+        alert("Estado actualizado correctamente.");
+        cargarPresupuestos(); // Actualiza visualmente
+
+    } catch (error) {
+        console.error("Error al actualizar estado:", error);
+        alert("Error al actualizar el estado: " + error.message);
+    }
 }
