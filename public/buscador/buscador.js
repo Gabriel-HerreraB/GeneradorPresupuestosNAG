@@ -132,10 +132,11 @@ function mostrarResultados() {
 
         row.innerHTML = `
             <td>${presupuesto.numero || 'N/A'}</td>
-            <td>${presupuesto.cliente}</td>
+            <td>${presupuesto.cliente || 'N/A'}</td>
             <td>${presupuesto.patente || 'N/A'}</td>
-            <td>${presupuesto.fecha}</td>
-            <td>${presupuesto.vencimiento}</td>
+            <td>${presupuesto.kilometraje || 'N/A'}</td>
+            <td>${presupuesto.fecha || 'N/A'}</td>
+            <td>${presupuesto.vencimiento || 'N/A'}</td>
             <td>$${calcularTotal(presupuesto).toLocaleString()}</td>
             <td style="text-align: center;">
                 <input type="checkbox" ${estaRealizado ? 'checked' : ''} onchange="confirmarCambioEstado(this, '${presupuesto.id}')">
@@ -612,7 +613,8 @@ async function abrirGeneradorModal(presupuesto) {
     document.getElementById('telefono').value = presupuesto.telefono || '';
     document.getElementById('email').value = presupuesto.email || '';
     document.getElementById('telefonoCliente').value = presupuesto.telefonoCliente || '';
-
+    document.getElementById('kilometraje').value = presupuesto.kilometraje || '';
+    
     // Limpiar items previos
     document.getElementById('itemsManoObraContainer').innerHTML = '';
     document.getElementById('itemsContainer').innerHTML = '';
@@ -722,6 +724,7 @@ function recolectarDatosDelFormulario() {
         fecha: formatearFecha(document.getElementById('fechaCreacion').value) || '',
         vencimiento: formatearFecha(document.getElementById('fechaVencimiento').value) || '',
         patente: document.getElementById('patente').value || '',
+        kilometraje: document.getElementById('kilometraje').value || "",
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
         manoObra: [],

@@ -449,6 +449,7 @@ items.forEach((item) => {
     const presupuestoJSON = {
         cliente: cliente,
         patente: document.getElementById('patente').value || "",
+        kilometraje: document.getElementById('kilometraje').value || "",
         numero: numeroPresupuesto,
         fecha: fechaCreacion,
         vencimiento: fechaVencimiento,
@@ -466,7 +467,8 @@ items.forEach((item) => {
         })),
         telefono: document.getElementById('telefono').value || '',
         email: document.getElementById('email').value || '',
-        telefonoCliente: document.getElementById('telefonoCliente').value || ''
+        telefonoCliente: document.getElementById('telefonoCliente').value || '',
+        realizado: 'false'
     };
 
     // Enviar JSON a través de un form oculto (sin CORS)
