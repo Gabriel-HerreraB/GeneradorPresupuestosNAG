@@ -124,6 +124,12 @@ function mostrarResultados() {
         `;
         return;
     }
+    //Ordenar presupuestos por número de forma descendente
+    presupuestosFiltrados.sort((a, b) => {
+        const numeroA = parseInt(a.numero?.split('-')[1] || '0');
+        const numeroB = parseInt(b.numero?.split('-')[1] || '0');
+        return numeroB - numeroA;
+    });
     
     presupuestosFiltrados.forEach((presupuesto, index) => {
         const row = document.createElement('tr');
