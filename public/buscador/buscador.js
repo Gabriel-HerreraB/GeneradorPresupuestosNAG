@@ -735,7 +735,7 @@ function recolectarDatosDelFormulario() {
         email: document.getElementById('email').value || '',
         manoObra: [],
         repuestos: [],
-        telefonoCliente : document.getElementById('telefonoCliente') || ''
+        telefonoCliente : document.getElementById('telefonoCliente').value || ''
     };
 
     // Recolectar items de mano de obra
@@ -780,7 +780,7 @@ function formatearFecha(fechaStr) {
 function abrirWhatsappModal(presupuesto) {
     const cliente = presupuesto.cliente;
     const patente = presupuesto.patente;
-    const telefono = presupuesto.telefonoCliente || presupuesto.telefono || '';
+    const telefono = presupuesto.telefonoCliente || '';
     const total = calcularTotal(presupuesto).toLocaleString();
 
     document.getElementById('whatsappCliente').value = cliente;
