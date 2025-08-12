@@ -792,8 +792,8 @@ function abrirWhatsappModal(presupuesto) {
     document.getElementById('whatsappMensaje').value =
     `Hola! te informamos que su servicio está listo para ser retirado 🤗
 Muchas gracias por elegirnos ✨
-📍 *Dirección:* Int. Ramón B. Mestre 3752 
-🕒 *Horarios:* 8:30 a 18:00
+📍  *Dirección:* Int. Ramón B. Mestre 3752 
+🕒  *Horarios:* 8:30 a 18:00 de lunes a viernes.
 
 *-NeumáticosAG*`;
 
